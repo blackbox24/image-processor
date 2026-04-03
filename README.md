@@ -8,9 +8,9 @@ This project involves creating a backend system for an image processing service 
 
 ### User Authentication
 
-- [ ] Sign-Up: Allow users to create an account.
-- [ ] Log-In: Allow users to log into their account.
-- [ ] JWT Authentication: Secure endpoints using JWTs for authenticated access.
+- [x] Sign-Up: Allow users to create an account.
+- [x] Log-In: Allow users to log into their account.
+- [x] JWT Authentication: Secure endpoints using JWTs for authenticated access.
 
 ### Image Management
 
