@@ -11,8 +11,9 @@ class ImageSerializer(serializers.ModelSerializer):
 
     def validate_image(self, value):
         # 1. Custom Extension Validation (Optional extra check)
-        valid_extensions = ['.jpg', '.jpeg', '.png', '.webp']
+        valid_extensions = [".jpg", ".jpeg", ".png", ".webp"]
         import os
+
         ext = os.path.splitext(value.name)[1].lower()
         if ext not in valid_extensions:
             raise serializers.ValidationError("Unsupported file extension.")
