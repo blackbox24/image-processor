@@ -65,6 +65,7 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": "Your project description",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
+    'COMPONENT_SPLIT_REQUEST': True,
     # OTHER SETTINGS
 }
 
@@ -98,11 +99,13 @@ CSRF_TRUSTED_ORIGINS = config(
 
 SITE_ID = 1
 # Custom apps
-# CUSTOM_APPS = [
-#     # Add your custom apps here
-# ]
+CUSTOM_APPS = [
+    # Add your custom apps here
+    "accounts",
+    "images",
+]
 
-INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS  # + CUSTOM_APPS
+INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + CUSTOM_APPS
 
 
 # AUTHENTICATION_BACKENDS  = [

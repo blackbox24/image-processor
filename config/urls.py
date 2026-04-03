@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
@@ -5,6 +7,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, Spec
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/accounts/", include("accounts.urls")),
+    path("api/images/", include("images.urls")),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     # path('accounts/',include('allauth.urls')),
     # Optional UI:
@@ -15,3 +18,6 @@ urlpatterns = [
     ),
     path("api/schema/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIAL_URL, document_root=settings.MEDIA_ROOT)
