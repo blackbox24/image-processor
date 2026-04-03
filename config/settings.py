@@ -45,17 +45,19 @@ REST_FRAMEWORK = {
     "ALLOWED_VERSIONS": ["v1", "v2"],  # List of allowed versions
     "DEFAULT_VERSION": "v1",  # The default version to use if not specified
     "VERSION_PARAM": "version",
-    "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework_simplejwt.authentication.JWTAuthentication",),
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 # JSON WEB TOKENS CONFIGURAITONS
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(config("ACCESS_TOKEN_LIFETIME", cast=int)),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=config("REFRESH_TOKEN_LIFETIME", cast=int)),
-    "ROTATE_REFRESH_TOKENS": True,
+    # "REFRESH_TOKEN_LIFETIME": timedelta(days=config("REFRESH_TOKEN_LIFETIME", cast=int)),
+    "ROTATE_REFRESH_TOKENS": False,
     "BLACKLIST_AFTER_ROTATION": True,
-    "UPDATE_LAST_LOGIN": True,
+    "UPDATE_LAST_LOGIN": False,
 }
 
 SPECTACULAR_SETTINGS = {
@@ -85,7 +87,7 @@ THIRD_PARTY_APPS = [
     # Add your third-party apps here
     "rest_framework",
     "rest_framework_simplejwt",
-    "rest_framework_simplejwt.token_blacklist",
+    "rest_framework.authtoken",
     "drf_spectacular",
     "corsheaders",
 ]
@@ -119,7 +121,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
