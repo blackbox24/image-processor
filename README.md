@@ -1,360 +1,134 @@
-markdown
-# Django Application Template
+# IMAGE PROCESSING BACKEND
 
-This is a robust Django application template featuring **Django REST Framework**, **Simple JWT** for authentication, **Docker** and **Docker Compose** for containerization, **Celery** for asynchronous task processing, **Redis** as a message broker and result backend, and comprehensive **logging** capabilities. It provides a production-ready setup for building scalable and secure RESTful APIs.
+This project involves creating a backend system for an image processing service similar to Cloudinary. The service will allow users to upload images, perform various transformations, and retrieve images in different formats. The system will feature user authentication, image upload, transformation operations, and efficient retrieval mechanisms.
 
-## Features
+## Requirements
 
-- 🛠️ **Django REST Framework (DRF)** for building powerful and flexible APIs
-- 🔐 **Simple JWT** for secure JSON Web Token authentication
-- 🐳 **Docker & Docker Compose** for consistent and reproducible environments
-- 🥕 **Celery** for handling asynchronous tasks with Redis as the broker and backend
-- 📜 **Logging** with structured output to console and file for debugging and monitoring
-- 🗄️ **PostgreSQL** as the default database
-- 🚀 **Gunicorn** for production-ready WSGI server
-- 🔍 **Environment Variables** management with `.env` file
-- 📝 **Pre-configured** settings for development and production
+----------------------
 
-## Prerequisites
+### User Authentication
 
-Ensure you have the following installed:
+- [ ] Sign-Up: Allow users to create an account.
+- [ ] Log-In: Allow users to log into their account.
+- [ ] JWT Authentication: Secure endpoints using JWTs for authenticated access.
 
-- **Python** (v3.11 or higher)
-- **Docker** and **Docker Compose**
-- **Git**
+### Image Management
 
-## Getting Started
+- [ ] Upload Image: Allow users to upload images.
 
-### Installation
+- [ ] Transform Image: Allow users to perform various transformations (resize, crop, rotate, watermark etc.).
 
-1. Clone the repository:
+- [ ] Retrieve Image: Allow users to retrieve a saved image in different formats.
 
-```bash
-git clone <repository-url>
-cd <repository-folder>
-```
+- [ ] List Images: List all uploaded images by the user with metadata.
 
-- Copy the example environment file and customize it:
-```bash
-cp .env.example .env
-```
+### Image Transformation
 
-- Update .env with your desired settings (e.g., database credentials, secret key, Redis URL).
-Build and start the Docker containers:
+Here is the list of transformations that you can implement:
 
-```bash
-docker-compose up --build
-```
-This starts the following services:
+- Resize
+- Crop
+- Rotate
+- Watermark
+- Flip
+- Mirror
+- Compress
+- Change format (JPEG, PNG, etc.)
+- Apply filters (grayscale, sepia, etc.)
 
-- `web`: Django application with Gunicorn
-- `celery`: Celery worker for asynchronous tasks
-- `redis`: Redis for Celery broker and backend
-- `db`: PostgreSQL database
+Feel free to add more transformations based on your interest and expertise.
 
-### Development
-To run the Django development server locally (outside Docker):
-Create and activate a virtual environment:
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
+### How to Implement
 
-### Install dependencies:
-```bash
-pip install -r requirements.txt
-```
+Here is the list of endpoints that you can implement for this project:
 
-### Apply migrations and start the server:
-```bash
-python manage.py migrate
-python manage.py runserver
-```
+Authentication Endpoints
+- Register a new user:
 
-### Start Redis and Celery locally (ensure Redis is installed or running via Docker):
-```bash
-celery -A config worker --loglevel=info
-```
+```javascript
 
-Open http://localhost:8000 to access the API.
-
-### API Authentication
-This template uses Simple JWT for authentication. To obtain a token:
-
-- Send a POST request to /api/token/ with valid user credentials:
-```bash
-curl -X POST http://localhost:8000/api/token/ -d "username=<username>&password=<password>"
-```
-
-- Use the access token in the Authorization header for protected endpoints:
-```bash
-curl -H "Authorization: Bearer <access_token>" http://localhost:8000/api/protected/
-```
-
-Refresh tokens can be obtained via /api/token/refresh/.
-
-### Running Celery Tasks
-To test Celery tasks, create a task in myapp/tasks.py (example included):
-
-```python
-from celery import shared_task
-import logging
-
-logger = logging.getLogger(__name__)
-
-@shared_task
-def example_task(x, y):
-    logger.info(f"Computing {x} + {y}")
-    result = x + y
-    logger.info(f"Result: {result}")
-    return result
-```
-
-Call the task from a view or shell:
-
-```python
-from myapp.tasks import example_task
-example_task.delay(2, 3)  # Runs asynchronously
-```
-
-### Logging
-- Logging is configured to output to both console and a file (logs/app.log). Logs include:
-- Django application logs
-- Celery task logs
-- Custom application logs
-- To view logs:
-- `Docker`: Use docker-compose logs <service> (e.g., docker-compose logs web).
-- `Local`: Check logs/app.log or console output.
-
-
-Example log configuration in config/settings.py:
-```python
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {message}',
-            'style': '{',
-        },
-    },
-    'handlers': {
-        'file': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': 'logs/app.log',
-            'formatter': 'verbose',
-        },
-        'console': {
-            'level': 'INFO',
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
-        },
-    },
-    'loggers': {
-        '': {
-            'handlers': ['file', 'console'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-    },
+POST /register
+{
+  "username": "user1",
+  "password": "password123"
 }
-
-```
-### Building for Production
-- Update .env for production (e.g., DEBUG=False, strong SECRET_KEY).
-- Build and start containers:
-```bash
-docker-compose -f docker-compose.yml up --build -d
+# Response should be the user object with a JWT.
 ```
 
-### Apply migrations:
-```bash
-docker-compose exec web python manage.py migrate
-```
-### Collect static files:
-```bash
-docker-compose exec web python manage.py collectstatic --noinput
-```
+- Log in an existing user:
 
-The application will be available at http://localhost:8000.
+```javascript
 
-### Docker Compose Configuration
-The docker-compose.yml file defines the following services:
-```yaml
-version: '3.8'
-services:
-  web:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000
-    volumes:
-      - .:/app
-      - static:/app/static
-    ports:
-      - "8000:8000"
-    env_file:
-      - .env
-    depends_on:
-      - db
-      - redis
-  celery:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    command: celery -A config worker --loglevel=info
-    volumes:
-      - .:/app
-    env_file:
-      - .env
-    depends_on:
-      - redis
-      - db
-  db:
-    image: postgres:15
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    env_file:
-      - .env
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-volumes:
-  postgres_data:
-  static:
-
+POST /login
+{
+  "username": "user1",
+  "password": "password123"
+}
+# Response should be the user object with a JWT.
 ```
 
-```
-Project Structure
-├── .env.example              # Example environment variables
-├── .gitignore                # Git ignore file
-├── Dockerfile                # Docker configuration
-├── docker-compose.yml        # Docker Compose configuration
-├── logs/                     # Log files directory
-│   └── app.log
-├── manage.py                 # Django management script
-├── config/                   # Django project settings
-│   ├── __init__.py
-│   ├── settings.py           # Project settings (includes logging, Celery, JWT)
-│   ├── urls.py               # Project URL configuration
-│   ├── wsgi.py
-│   └── asgi.py
-├── myapp/                    # Sample Django app
-│   ├── __init__.py
-│   ├── admin.py
-│   ├── apps.py
-│   ├── migrations/
-│   ├── models.py
-│   ├── tasks.py              # Celery tasks
-│   ├── tests.py
-│   ├── urls.py
-│   └── views.py
-├── requirements.txt          # Python dependencies
-└── README.md                 # Project documentation
+### Image Management Endpoints
 
+- Upload an image:
+
+```javascript
+
+POST /images
+Request Body: Multipart form-data with image file
+Response: Uploaded image details (URL, metadata).
+Apply transformations to an image:
 ```
 
-### Dependencies
-#### Core Dependencies
-`django@5.1.3`: Web framework
-`djangorestframework@3.15.2`: REST API toolkit
-`djangorestframework-simplejwt@6.1.0`: JWT authentication
-`psycopg2-binary@2.9.10`: PostgreSQL adapter
-`gunicorn@23.0.0`: WSGI server
-`celery@5.4.0`: Asynchronous task queue
-`redis@5.0.8`: Redis client
-`python-dotenv@1.0.1`: Environment variable management
+```javascript
 
-### Scripts
-```markdown
-`docker-compose up --build`: Build and start containers
-`docker-compose down`: Stop and remove containers
-`python manage.py runserver`: Start Django development server
-`python manage.py migrate`: Apply database migrations
-`python manage.py collectstatic`: Collect static files
-`celery -A config worker --loglevel=info`: Start Celery worker
-`docker-compose logs <service>`: View logs for a service
-```
-### Configuration
-Dockerfile
-```dockerfile
-FROM python:3.11-slim
-
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-WORKDIR /app
-
-RUN pip install --upgrade pip
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY . .
-
-RUN mkdir -p /app/logs && chown -R nobody:nogroup /app/logs
-
-USER nobody
-
-EXPOSE 8000
-
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "config.wsgi:application"]
+POST /images/:id/transform
+{
+  "transformations": {
+    "resize": {
+      "width": "number",
+      "height": "number"
+    },
+    "crop": {
+      "width": "number",
+      "height": "number",
+      "x": "number",
+      "y": "number"
+    },
+    "rotate": "number",
+    "format": "string",
+    "filters": {
+      "grayscale": "boolean",
+      "sepia": "boolean"
+    }
+  }
+}
 ```
 
-### Settings (config/settings.py)
-`Simple JWT`: Configured for token-based authentication
-`Celery`: Uses Redis as broker and backend (CELERY_BROKER_URL, CELERY_RESULT_BACKEND)
-`Logging`: Outputs to console and logs/app.log
-`Database`: PostgreSQL via environment variables
-`REST Framework`: Includes authentication and permission classes
+User can apply one or more transformations to the image. Response should be the transformed image details (URL, metadata).
 
-### Environment Variables
-Example .env.example:
-```env
-DEBUG=True
-SECRET_KEY=your-secret-key
-DATABASE_URL=postgres://user:password@db:5432/dbname
-CELERY_BROKER_URL=redis://redis:6379/0
-CELERY_RESULT_BACKEND=redis://redis:6379/0
-ALLOWED_HOSTS=localhost,127.0.0.1
+- Retrieve an image:
 
+```javascript
+
+GET /images/:id
+# Response should be the image actual image detail.
 ```
 
-### Contributing
-    Fork the repository.
-    Create a branch: git checkout -b feature/your-feature.
-    Commit changes: git commit -m "Add your feature".
-    Push to branch: git push origin feature/your-feature.
-    Open a pull request.
+- Get a paginated list of images:
 
-### License
-MIT License. See LICENSE.
-This template is designed for rapid development and deployment of Django REST APIs. For issues or feature requests, please open an issue in the repository.
+```javascript
 
+GET /images?page=1&limit=10
+```
 
----
+### Tips
 
-### Notes
+- Use a cloud storage service like AWS S3, Cloudflare R2, or Google Cloud Storage to store images.
+- Use some image processing libraries to apply transformations.
+- Put a rate limit on image transformations to prevent abuse.
+- Consider caching transformed images to improve performance.
+- Implement error handling and validation for all endpoints.
 
-1. **Security Policy Integration**:
-   - The `SECURITY.md` file is tailored to the Django template, specifying supported Django versions (5.1.x and 4.2.x, as 4.2 is the latest LTS version as of June 2025).
-   - I replaced the generic email placeholder (`<your-security-email@example.com>`) with a note to customize it. You should specify a real email or contact method for vulnerability reports.
-   - The policy includes coordination with upstream projects (e.g., Django) and references to dependency security advisories.
+- **Note:** Optionally use a message queue like RabbitMQ or Kafka to process image transformations asynchronously.
 
-2. **README Updates**:
-   - Added a **Security** section linking to `SECURITY.md`.
-   - Updated the **Project Structure** to include `SECURITY.md`.
-   - Added a note in the **Contributing** section about security contributions.
-   - Kept all other sections consistent with your original Django template request.
-
-3. **Assumptions**:
-   - I assumed Django 4.2.x is supported as it’s the latest LTS version, while 5.0.x is not supported (as it’s not an LTS and likely superseded by 5.1.x).
-   - If you have specific version support preferences or a different contact method for vulnerabilities, let me know, and I can adjust the files.
-
-4. **Next Steps**:
-   - Create a `SECURITY.md` file in your repository with the content above.
-   - Update your `README.md` with the provided version.
-   - Specify a security contact email in `SECURITY.md`.
-   - Ensure your repository includes a `LICENSE` file if you’re using the MIT License.
+This project will help you understand how to build a scalable image processing service with user authentication and image transformation capabilities. You can use this project to showcase your backend development skills and learn about image processing techniques.
