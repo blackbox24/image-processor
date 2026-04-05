@@ -6,8 +6,8 @@ from .models import Images
 class ImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Images
-        fields = ["user", "image", "updated_at"]
-        read_only_fields = ["user", "updated_at"]
+        fields = ["id", "user", "image", "updated_at"]
+        read_only_fields = ["id", "user", "updated_at"]
 
     def validate_image(self, value):
         # 1. Custom Extension Validation (Optional extra check)

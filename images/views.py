@@ -4,8 +4,9 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 
 from .models import Images
-from .serializers import ImageSerializer
+from .paginations import CustomPagination
 from .permissions import IsOwnerPermission
+from .serializers import ImageSerializer
 
 
 class ListCreateImageView(ListCreateAPIView):
@@ -13,6 +14,7 @@ class ListCreateImageView(ListCreateAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = ImageSerializer
     queryset = Images.objects.all()
+    pagination_class = CustomPagination
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -22,8 +24,14 @@ class ListCreateImageView(ListCreateAPIView):
 
 
 class RetrieveUpdateDeleteImageView(RetrieveUpdateDestroyAPIView):
-    parser_classes = (MultiPartParser, FormParser,)
-    permission_classes = (IsAuthenticated, IsOwnerPermission,)
+    parser_classes = (
+        MultiPartParser,
+        FormParser,
+    )
+    permission_classes = (
+        IsAuthenticated,
+        IsOwnerPermission,
+    )
     serializer_class = ImageSerializer
     queryset = Images.objects.all()
     lookup_field = "id"
