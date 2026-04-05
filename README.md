@@ -14,13 +14,13 @@ This project involves creating a backend system for an image processing service 
 
 ### Image Management
 
-- [ ] Upload Image: Allow users to upload images.
+- [x] Upload Image: Allow users to upload images.
 
 - [ ] Transform Image: Allow users to perform various transformations (resize, crop, rotate, watermark etc.).
 
 - [ ] Retrieve Image: Allow users to retrieve a saved image in different formats.
 
-- [ ] List Images: List all uploaded images by the user with metadata.
+- [x] List Images: List all uploaded images by the user with metadata.
 
 ### Image Transformation
 
