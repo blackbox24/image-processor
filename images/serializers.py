@@ -24,3 +24,23 @@ class ImageSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("File too large. Size should not exceed 2MB.")
 
         return value
+
+
+class ImageResizeSerializer(serializers.Serializer):
+    width = serializers.IntegerField()
+    height = serializers.IntegerField()
+
+class ImageCropSerializer(ImageResizeSerializer):
+    x = serializers.IntegerField()
+    y = serializers.IntegerField()
+
+class ImageFilterSerializer(serializers.Serializer):
+    grayscale = serializers.BooleanField()
+    sepia = serializers.BooleanField()
+
+class ImageTransformationSerializer(serializers.Serializer):
+    resize = ImageResizeSerializer()
+    crop = ImageCropSerializer()
+    rotate = serializers.IntegerField()
+    _format = serializers.CharField()
+    image_filter = ImageFilterSerializer()
