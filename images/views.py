@@ -57,6 +57,7 @@ class ImageTransformationView(APIView):
         except Images.DoesNotExist:
             return Response("Image does not exist", status=status.HTTP_404_NOT_FOUND)
         # This will now include the image's actual width/height in the 'initial' data
+        self.check_object_permissions(request, image)
         serializer = ImageTransformationSerializer(instance=image)
 
         return Response(serializer.data)
@@ -66,6 +67,7 @@ class ImageTransformationView(APIView):
             image = Images.objects.get(id=id)
         except Images.DoesNotExist:
             return Response("Image does not exist", status=status.HTTP_404_NOT_FOUND)
+        self.check_object_permissions(request, image)
         serializer = self.serializer_class(data=request.data, instance=image)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -99,11 +101,9 @@ class ImageTransformationView(APIView):
 
         if img.size[0] <= 0 or img.size[1] <= 0:
             return Response(
-                {"error": "Transformation resulted in an empty image."}, 
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": "Transformation resulted in an empty image."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
-
-
 
         buffer = io.BytesIO()
         img_format = data.get("format", img.format or "JPEG").upper()

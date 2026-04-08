@@ -80,3 +80,19 @@ class ImageTransformationSerializer(serializers.Serializer):
                 if (c["x"] + c["width"] > orig_w) or (c["y"] + c["height"] > orig_h):
                     raise serializers.ValidationError("Crop area is out of bounds.")
         return attrs
+
+    def to_representation(self, instance):
+        """
+        This ensures that when you call serializer.data in a GET request,
+        it actually populates the fields with the image metadata.
+        """
+        with Image.open(instance.image.path) as img:
+            width, height = img.size
+
+        return {
+            "resize": {"width": width, "height": height},
+            "crop": {"x": 0, "y": 0, "width": width, "height": height},
+            "rotate": 0,
+            "format": img.format,
+            "image_filter": {"grayscale": False, "sepia": False},
+        }
