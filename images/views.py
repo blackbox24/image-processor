@@ -1,14 +1,22 @@
 import io
+from typing import TYPE_CHECKING, Any, cast
 
+from django.core.cache import cache
 from django.db.models import QuerySet
 from django.http import FileResponse
 from PIL import Image, ImageOps
+
+if TYPE_CHECKING:
+    from PIL.PyAccess import PyAccess  # type: ignore
 from rest_framework import status
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from utils.helpers import get_transformation_cache_key
 
 from .models import Images
 from .paginations import CustomPagination
@@ -17,7 +25,7 @@ from .rate_limiting import ImageTransFormationLimiter
 from .serializers import ImageSerializer, ImageTransformationSerializer
 
 
-class ListCreateImageView(ListCreateAPIView):
+class ListCreateImageView(ListCreateAPIView[Images]):
     parser_classes = (MultiPartParser, FormParser)
     permission_classes = (IsAuthenticated,)
     serializer_class = ImageSerializer
@@ -32,7 +40,7 @@ class ListCreateImageView(ListCreateAPIView):
         return Images.objects.filter(user=self.request.user.pk).prefetch_related()
 
 
-class RetrieveUpdateDeleteImageView(RetrieveUpdateDestroyAPIView):
+class RetrieveUpdateDeleteImageView(RetrieveUpdateDestroyAPIView[Images]):
     parser_classes = (
         MultiPartParser,
         FormParser,
@@ -66,7 +74,8 @@ class ImageTransformationView(APIView):
 
         return Response(serializer.data)
 
-    def post(self, request, id, *args, **kwargs):
+    def post(self, request: Request, id: int, *args: Any, **kwargs: Any) -> FileResponse | Response:
+        buffer = io.BytesIO()
         try:
             image = Images.objects.get(id=id)
         except Images.DoesNotExist:
@@ -76,8 +85,16 @@ class ImageTransformationView(APIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        img = Image.open(image.image.path)
-        data = serializer.validated_data
+        img: Image.Image = Image.open(image.image.path)
+        data: dict[str, Any] = serializer.validated_data
+
+        cache_key = get_transformation_cache_key(image_id=id, data=data)
+        cached_image = cache.get(cache_key)
+
+        if cached_image:
+            return FileResponse(
+                io.BytesIO(cached_image), content_type=f"image/{data.get('format', 'jpeg').lower()}"
+            )
 
         if "resize" in data:
             img = img.resize(
@@ -109,18 +126,23 @@ class ImageTransformationView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        buffer = io.BytesIO()
         img_format = data.get("format", img.format or "JPEG").upper()
         img.save(buffer, format=img_format)
+
+        # Store raw bytes in cache (timeout e.g., 24 hours)
+        cache.set(cache_key, buffer.getvalue(), timeout=60 * 60 * 24)
         buffer.seek(0)
 
         return FileResponse(buffer, content_type=f"image/{img_format.lower()}")
 
-    def _apply_sepia(self, img):
+    def _apply_sepia(self, img: Image.Image) -> Image.Image:
         # Convert to RGB if not already
         img = img.convert("RGB")
         width, height = img.size
-        pixels = img.load()
+        pixels = cast("PyAccess", img.load())  # type: ignore
+        if pixels is None:
+            return img
+
         for y in range(height):
             for x in range(width):
                 r, g, b = pixels[x, y]

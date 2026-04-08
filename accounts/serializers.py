@@ -8,7 +8,7 @@ class SignUpSerializer(serializers.Serializer):
     username = serializers.CharField(required=True)
     password = serializers.CharField(required=True)
 
-    def validate_username(self, username):
+    def validate_username(self, username: str) -> str:
         user_exists = User.objects.filter(username=username)
         if user_exists:
             raise serializers.ValidationError("Username already exists")

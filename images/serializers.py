@@ -1,16 +1,18 @@
+from typing import Any
+
 from PIL import Image
 from rest_framework import serializers
 
 from .models import Images
 
 
-class ImageSerializer(serializers.ModelSerializer):
+class ImageSerializer(serializers.ModelSerializer[Images]):
     class Meta:
         model = Images
         fields = ["id", "user", "image", "updated_at"]
         read_only_fields = ["id", "user", "updated_at"]
 
-    def validate_image(self, value):
+    def validate_image(self, value: Any):
         # 1. Custom Extension Validation (Optional extra check)
         valid_extensions = [".jpg", ".jpeg", ".png", ".webp"]
         import os
