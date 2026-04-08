@@ -74,6 +74,13 @@ SPECTACULAR_SETTINGS = {
 
 CORS_ALLOWED_ORIGINS = CSRF_TRUSTED_ORIGINS
 
+CACHES = {
+    "default": {
+        "BACKEND": 'django.core.cache.backends.redis.RedisCache',
+        "LOCATION": config('REDIS_URL', cast=str, default='redis://127.0.0.1:6379/0'),
+    }
+}
+
 # Application definition
 DJANGO_APPS = [
     "django.contrib.admin",
