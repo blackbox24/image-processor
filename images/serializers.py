@@ -1,3 +1,4 @@
+from PIL import Image
 from rest_framework import serializers
 
 from .models import Images
@@ -30,17 +31,52 @@ class ImageResizeSerializer(serializers.Serializer):
     width = serializers.IntegerField()
     height = serializers.IntegerField()
 
+
 class ImageCropSerializer(ImageResizeSerializer):
     x = serializers.IntegerField()
     y = serializers.IntegerField()
+
 
 class ImageFilterSerializer(serializers.Serializer):
     grayscale = serializers.BooleanField()
     sepia = serializers.BooleanField()
 
+
 class ImageTransformationSerializer(serializers.Serializer):
-    resize = ImageResizeSerializer()
-    crop = ImageCropSerializer()
-    rotate = serializers.IntegerField()
-    _format = serializers.CharField()
-    image_filter = ImageFilterSerializer()
+    resize = ImageResizeSerializer(required=False)
+    crop = ImageCropSerializer(required=False)
+    rotate = serializers.IntegerField(required=False, min_value=0, max_value=360)
+    format = serializers.CharField(required=False)
+    image_filter = ImageFilterSerializer(required=False)
+
+    def __init__(self, *args, **kwargs):
+        # Extract the image instance to get metadata
+        instance = kwargs.get("instance")
+        if instance and hasattr(instance, "image"):
+            with Image.open(instance.image.path) as img:
+                width, height = img.size
+
+            # Set initial values for the fields
+            initial = kwargs.get("initial", {})
+            initial.update(
+                {
+                    "resize": {"width": width, "height": height},
+                    "crop": {"x": 0, "y": 0, "width": width, "height": height},
+                    "format": img.format,
+                }
+            )
+            kwargs["initial"] = initial
+
+        super().__init__(*args, **kwargs)
+
+    def validate(self, attrs):
+        # Access the image via self.instance to validate bounds
+        if self.instance:
+            with Image.open(self.instance.image.path) as img:
+                orig_w, orig_h = img.size
+
+            if "crop" in attrs:
+                c = attrs["crop"]
+                if (c["x"] + c["width"] > orig_w) or (c["y"] + c["height"] > orig_h):
+                    raise serializers.ValidationError("Crop area is out of bounds.")
+        return attrs
