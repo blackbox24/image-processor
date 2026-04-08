@@ -13,8 +13,8 @@ from rest_framework.views import APIView
 from .models import Images
 from .paginations import CustomPagination
 from .permissions import IsOwnerPermission
-from .serializers import ImageSerializer, ImageTransformationSerializer
 from .rate_limiting import ImageTransFormationLimiter
+from .serializers import ImageSerializer, ImageTransformationSerializer
 
 
 class ListCreateImageView(ListCreateAPIView):
@@ -41,7 +41,7 @@ class RetrieveUpdateDeleteImageView(RetrieveUpdateDestroyAPIView):
         IsAuthenticated,
         IsOwnerPermission,
     )
-    throttle_classes = (ImageTransFormationLimiter, )
+    throttle_classes = (ImageTransFormationLimiter,)
     serializer_class = ImageSerializer
     queryset = Images.objects.all()
     lookup_field = "id"
@@ -53,7 +53,7 @@ class ImageTransformationView(APIView):
         IsOwnerPermission,
     )
     serializer_class = ImageTransformationSerializer
-    throttle_classes = (ImageTransFormationLimiter, )
+    throttle_classes = (ImageTransFormationLimiter,)
 
     def get(self, request, id):
         try:
